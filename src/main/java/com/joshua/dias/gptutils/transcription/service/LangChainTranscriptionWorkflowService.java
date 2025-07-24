@@ -110,8 +110,8 @@ public class LangChainTranscriptionWorkflowService implements TranscriptionWorkf
                 6. If the transcription is empty, respond with: "Transcription is empty. No processing can be done."
                 7. Do not mention errors or processing steps in the final output.
 
-                At the end, include a compact and simple summary with two parts:
-                    – Intent: What the sender wants or means.
+                At the end, include a summary with two parts:
+                    – Intent: What the sender wants or means, and the key points if content is big.
                     – Response Suggestion: How the receiver should respond.
  
                 8. Follow the format (nothing else):
