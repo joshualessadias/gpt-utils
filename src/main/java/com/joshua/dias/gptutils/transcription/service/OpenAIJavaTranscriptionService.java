@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
@@ -109,7 +110,7 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
         File tempFile = new File(System.getProperty("java.io.tmpdir"), fileName);
 
         // Create URL and open connection
-        URL url = new URL(audioUrl);
+        URL url = URI.create(audioUrl).toURL();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         // Download the file
