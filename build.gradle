@@ -31,6 +31,10 @@ dependencies {
     // LangGraph for workflow management
     implementation 'dev.langchain4j:langchain4j:1.1.0'
     implementation 'dev.langchain4j:langchain4j-open-ai:1.1.0'
+    
+    // Audio compression library (Jave2)
+    implementation 'ws.schild:jave-core:3.3.1'
+    implementation 'ws.schild:jave-all-deps:3.3.1'
 }
 
 group 'com.joshua.dias'

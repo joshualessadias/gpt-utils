@@ -29,6 +29,7 @@ public class ReceiveMessageDTO {
     private ReactionDTO reaction;
     private ImageDTO image;
     private AudioDTO audio;
+    private VideoDTO video;
 
     // Default constructor
     public ReceiveMessageDTO() {
@@ -233,5 +234,13 @@ public class ReceiveMessageDTO {
 
     public void setAudio(AudioDTO audio) {
         this.audio = audio;
+    }
+
+    public VideoDTO getVideo() {
+        return video;
+    }
+
+    public void setVideo(VideoDTO video) {
+        this.video = video;
     }
 }

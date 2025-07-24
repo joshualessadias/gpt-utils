@@ -66,17 +66,29 @@ public class MessageResource {
                         .build();
             }
             
-            // Check if audio is present
-            if (message.getAudio() == null || message.getAudio().getAudioUrl() == null) {
-                LOG.warn("Message does not contain audio content");
+            // Check if audio or video is present
+            String audioUrl = null;
+            
+            // First check for audio content
+            if (message.getAudio() != null && message.getAudio().getAudioUrl() != null) {
+                audioUrl = message.getAudio().getAudioUrl();
+                LOG.info("Processing audio content with URL: " + audioUrl);
+            } 
+            // If no audio, check for video content
+            else if (message.getVideo() != null && message.getVideo().getVideoUrl() != null) {
+                audioUrl = message.getVideo().getVideoUrl();
+                LOG.info("Processing video content with URL: " + audioUrl);
+            }
+            // If neither audio nor video is present, return an error
+            else {
+                LOG.warn("Message does not contain audio or video content");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(createErrorResponse("Message does not contain audio content"))
+                        .entity(createErrorResponse("Message does not contain audio or video content"))
                         .build();
             }
             
             // Extract required parameters
             String phoneNumber = message.getPhone();
-            String audioUrl = message.getAudio().getAudioUrl();
             
             // Validate extracted parameters
             if (phoneNumber == null || phoneNumber.trim().isEmpty()) {

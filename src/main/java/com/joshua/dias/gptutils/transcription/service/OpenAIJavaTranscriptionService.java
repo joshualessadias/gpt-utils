@@ -37,6 +37,7 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
 
     private final OpenAIClient openAIClient;
     private final String model;
+    private final AudioCompressionService audioCompressionService;
 
     /**
      * Constructor that initializes the OpenAI client with the API key from configuration.
@@ -44,19 +45,22 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
     @Inject
     public OpenAIJavaTranscriptionService(
             @ConfigProperty(name = "openai.api-key") String apiKey,
-            @ConfigProperty(name = "openai.model") String model
+            @ConfigProperty(name = "openai.model") String model,
+            AudioCompressionService audioCompressionService
     ) {
         // Create the OpenAI client with the API key
         this.openAIClient = OpenAIOkHttpClient.builder()
                 .apiKey(apiKey)
                 .build();
         this.model = model;
+        this.audioCompressionService = audioCompressionService;
         LOG.info("OpenAIJavaTranscriptionService initialized with model: " + model);
     }
 
     @Override
     public TranscriptionResponse transcribe(TranscriptionRequest request) {
         File tempFile = null;
+        File compressedFile = null;
         try {
             // Get the audio URL from the request
             String audioUrl = request.getAudioUrl();
@@ -67,10 +71,21 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
 
             // Download the audio file from the URL
             tempFile = downloadAudioFromUrl(audioUrl, extension);
+            
+            // Compress the audio file if needed
+            LOG.info("Checking if audio file needs compression. Size: " + tempFile.length() + " bytes");
+            compressedFile = audioCompressionService.compressIfNeeded(tempFile);
+            
+            // If the compressed file is different from the original, log the compression ratio
+            if (compressedFile != tempFile) {
+                double compressionRatio = (double) compressedFile.length() / tempFile.length() * 100;
+                LOG.info(String.format("Audio compressed. Original: %d bytes, Compressed: %d bytes, Ratio: %.2f%%", 
+                        tempFile.length(), compressedFile.length(), compressionRatio));
+            }
 
-            // Create the transcription parameters
+            // Create the transcription parameters with the compressed file
             TranscriptionCreateParams createParams = TranscriptionCreateParams.builder()
-                    .file(tempFile.toPath())
+                    .file(compressedFile.toPath())
                     .model(model) // Using the model from configuration
                     .build();
 
@@ -94,9 +109,13 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
                     "Unexpected error during transcription: " + e.getMessage(),
                     false);
         } finally {
-            // Clean up the temporary file
+            // Clean up the temporary files
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
+            }
+            // Only delete the compressed file if it's different from the original
+            if (compressedFile != null && compressedFile != tempFile && compressedFile.exists()) {
+                compressedFile.delete();
             }
         }
     }
