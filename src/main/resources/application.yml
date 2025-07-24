@@ -1,0 +1,39 @@
+quarkus:
+  application:
+    name: gpt-utils
+  http:
+    port: 8912
+  rest-client:
+    zapi-client:
+      url: "https://api.z-api.io/instances/${zapi.instance-id}/token/${zapi.instance-token}"  # Base URL for Z-API
+      scope: jakarta.inject.Singleton
+      connect-timeout: 5000
+      read-timeout: 5000
+
+# OpenAI configuration
+openai:
+  api-key: "${OPENAI_API_KEY}"
+  model: "whisper-1"
+  chat-model: "gpt-4.1-nano"
+  timeout: 30
+
+# Application-specific configurations
+app:
+  upload:
+    max-size: 10M  # Maximum size for audio uploads
+    allowed-types: "audio/mpeg,audio/wav,audio/mp4"
+  async:
+    core-pool-size: 5  # Number of threads in the core pool
+    max-pool-size: 10  # Maximum number of threads
+    queue-size: 100    # Size of the work queue
+  notification:
+    retry-attempts: 3  # Number of retry attempts for failed notifications
+    retry-delay: 1000  # Delay between retry attempts in milliseconds
+  logging:
+    filter-enabled: "${LOGGING_FILTER_ENABLED:false}"  # Enable/disable request logging filter
+
+# Z-API configuration
+zapi:
+  instance-id: "${ZAPI_INSTANCE_ID}"  # Z-API instance ID
+  instance-token: "${ZAPI_INSTANCE_TOKEN}"  # Z-API instance token
+  client-token: "${ZAPI_CLIENT_TOKEN}"  # Z-API client token for authentication

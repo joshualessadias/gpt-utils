@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'io.quarkus:quarkus-arc'
+
+    // RESTEasy Classic (instead of Reactive)
+    implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-resteasy-multipart'
+    
+    // REST Client for making HTTP calls (using RESTEasy Classic)
+    implementation 'io.quarkus:quarkus-resteasy-client'
+    implementation 'io.quarkus:quarkus-resteasy-client-jackson'
+    
+    // Context propagation for async operations
+    implementation 'io.quarkus:quarkus-smallrye-context-propagation'
+
+    // Official OpenAI Java client
+    implementation 'com.openai:openai-java:2.18.2'
+    
+    // LangGraph for workflow management
+    implementation 'dev.langchain4j:langchain4j:1.1.0'
+    implementation 'dev.langchain4j:langchain4j-open-ai:1.1.0'
+}
+
+group 'com.joshua.dias'
+version '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
