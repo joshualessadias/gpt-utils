@@ -9,6 +9,7 @@ public class SendMessageRequestDTO {
     private Integer delayMessage;
     private Integer delayTyping;
     private String editMessageId;
+    private String messageId;
 
     // Default constructor
     public SendMessageRequestDTO() {
@@ -68,5 +69,13 @@ public class SendMessageRequestDTO {
 
     public void setEditMessageId(String editMessageId) {
         this.editMessageId = editMessageId;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 }

@@ -120,6 +120,7 @@ public class MessageResource {
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("phoneNumber", phoneNumber);
             parameters.put("audioUrl", audioUrl);
+            parameters.put("messageId", message.getMessageId());
             
             ToolExecutionRequest toolRequest = new ToolExecutionRequest(
                     toolName, 

@@ -75,14 +75,15 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
             // Compress the audio file if needed
             LOG.info("Checking if audio file needs compression. Size: " + tempFile.length() + " bytes");
             compressedFile = audioCompressionService.compressIfNeeded(tempFile);
-            
+
             // If the compressed file is different from the original, log the compression ratio
             if (compressedFile != tempFile) {
                 double compressionRatio = (double) compressedFile.length() / tempFile.length() * 100;
-                LOG.info(String.format("Audio compressed. Original: %d bytes, Compressed: %d bytes, Ratio: %.2f%%", 
+                LOG.info(String.format("Audio compressed. Original: %d bytes, Compressed: %d bytes, Ratio: %.2f%%",
                         tempFile.length(), compressedFile.length(), compressionRatio));
             }
 
+            LOG.info("Transcribing audio file with whisper-1 model");
             // Create the transcription parameters with the compressed file
             TranscriptionCreateParams createParams = TranscriptionCreateParams.builder()
                     .file(compressedFile.toPath())
@@ -93,21 +94,21 @@ public class OpenAIJavaTranscriptionService implements TranscriptionService {
             Transcription transcription = openAIClient.audio().transcriptions().create(createParams).asTranscription();
 
             // Return the successful response
-            return new TranscriptionResponse(request.getPhoneNumber(), transcription.text());
+            return new TranscriptionResponse(request.getPhoneNumber(), transcription.text(), request.getMessageId());
 
         } catch (MalformedURLException e) {
             LOG.error("Invalid URL: " + e.getMessage(), e);
-            return new TranscriptionResponse(request.getPhoneNumber(), "Invalid URL: " + e.getMessage(), false);
+            return new TranscriptionResponse(request.getPhoneNumber(), "Invalid URL: " + e.getMessage(), false, request.getMessageId());
         } catch (IOException e) {
             LOG.error("Error downloading or processing audio file: " + e.getMessage(), e);
             return new TranscriptionResponse(request.getPhoneNumber(),
                     "Error downloading or processing audio file: " + e.getMessage(),
-                    false);
+                    false, request.getMessageId());
         } catch (Exception e) {
             LOG.error("Unexpected error during transcription: " + e.getMessage(), e);
             return new TranscriptionResponse(request.getPhoneNumber(),
                     "Unexpected error during transcription: " + e.getMessage(),
-                    false);
+                    false, request.getMessageId());
         } finally {
             // Clean up the temporary files
             if (tempFile != null && tempFile.exists()) {

@@ -41,8 +41,8 @@ public class NotificationService {
             // Format the message with transcription details and timestamp
             String message = formatNotificationMessage(response);
             
-            // Send WhatsApp message via Z-API service
-            boolean success = zApiService.sendMessage(response.getPhoneNumber(), message);
+            // Send WhatsApp message via Z-API service with messageId for referencing
+            boolean success = zApiService.sendMessage(response.getPhoneNumber(), message, null, null, null, response.getMessageId());
             
             if (success) {
                 LOG.info("WhatsApp notification sent successfully via Z-API");

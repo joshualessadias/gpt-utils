@@ -127,7 +127,8 @@ public class TranscriptionTool implements Tool {
     private TranscriptionRequest createTranscriptionRequest(ToolExecutionRequest request) {
         String phoneNumber = request.getParameterAs("phoneNumber", "");
         String audioUrl = request.getParameterAs("audioUrl", "");
+        String messageId = request.getParameterAs("messageId", "");
         
-        return new TranscriptionRequest(phoneNumber, audioUrl);
+        return new TranscriptionRequest(phoneNumber, audioUrl, messageId);
     }
 }

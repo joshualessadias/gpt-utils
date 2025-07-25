@@ -64,7 +64,7 @@ public class LangChainTranscriptionWorkflowService implements TranscriptionWorkf
             String validationError = validator.validate(request);
             if (validationError != null) {
                 LOG.warn("Validation error: " + validationError);
-                return new TranscriptionResponse(request.getPhoneNumber(), validationError, false);
+                return new TranscriptionResponse(request.getPhoneNumber(), validationError, false, request.getMessageId());
             }
 
             // Step 2: Transcribe the audio
@@ -85,12 +85,12 @@ public class LangChainTranscriptionWorkflowService implements TranscriptionWorkf
             LOG.debug("Processed text result: " + (processedText != null ? processedText.substring(0, Math.min(100, processedText.length())) + "..." : "null"));
 
             // Return the processed response
-            return new TranscriptionResponse(request.getPhoneNumber(), processedText);
+            return new TranscriptionResponse(request.getPhoneNumber(), processedText, request.getMessageId());
 
         } catch (Exception e) {
             LOG.error("Error in transcription workflow: " + e.getMessage(), e);
             return new TranscriptionResponse(request.getPhoneNumber(),
-                    "Error in transcription workflow: " + e.getMessage(), false);
+                    "Error in transcription workflow: " + e.getMessage(), false, request.getMessageId());
         }
     }
 

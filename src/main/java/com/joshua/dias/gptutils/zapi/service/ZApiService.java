@@ -52,11 +52,32 @@ public class ZApiService {
      * @return true if message was sent successfully, false otherwise
      */
     public boolean sendMessage(String phoneNumber, String message, Integer delayMessage, Integer delayTyping, String editMessageId) {
+        return sendMessage(phoneNumber, message, delayMessage, delayTyping, editMessageId, null);
+    }
+    
+    /**
+     * Sends a WhatsApp message via Z-API with additional options and message referencing.
+     * 
+     * @param phoneNumber The phone number to send the message to
+     * @param message The message content
+     * @param delayMessage Delay before sending the message (in milliseconds)
+     * @param delayTyping Delay for typing simulation (in milliseconds)
+     * @param editMessageId ID of the message to edit (if editing an existing message)
+     * @param messageId ID of the message to reference (for replying to a specific message)
+     * @return true if message was sent successfully, false otherwise
+     */
+    public boolean sendMessage(String phoneNumber, String message, Integer delayMessage, Integer delayTyping, String editMessageId, String messageId) {
         try {
             LOG.info("Sending WhatsApp message to phone number: " + phoneNumber);
             
             // Create message request
             SendMessageRequestDTO request = new SendMessageRequestDTO(phoneNumber, message, delayMessage, delayTyping, editMessageId);
+            
+            // Set messageId for referencing if provided
+            if (messageId != null && !messageId.isEmpty()) {
+                request.setMessageId(messageId);
+                LOG.info("Referencing message with ID: " + messageId);
+            }
             
             // Send message via Z-API
             Response clientResponse = zApiClient.sendMessage(request);
