@@ -104,7 +104,7 @@ public class LangChainTranscriptionWorkflowService implements TranscriptionWorkf
 
                 1. Respond in the same language as the transcription (do not translate).
                 2. Correct any transcription errors or inconsistencies.
-                3. Improve grammar and punctuation.
+                3. Improve and punctuation, keep grammar and vocabulary as it was transcribed.
                 4. Format the text for better readability.
                 5. Preserve the original meaning and intent.
                 6. If the transcription is empty, respond with: "Transcription is empty. No processing can be done."
