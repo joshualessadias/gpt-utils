@@ -18,9 +18,12 @@ public class DefaultPhoneToolMappingService implements PhoneToolMappingService {
     
     private static final Logger LOG = Logger.getLogger(DefaultPhoneToolMappingService.class);
     
-    // Initial mapping for the existing phone number and tool
-    private static final String DEFAULT_PHONE = "120363419403036758-group";
-    private static final String DEFAULT_TOOL = "transcription";
+    // Initial mappings for phone numbers and tools
+    private static final String TRANSCRIPTION_PHONE = "120363419403036758-group";
+    private static final String TRANSCRIPTION_TOOL = "transcription";
+    
+    private static final String CSV_PROCESSING_PHONE = "120363419403036759-group"; // TODO: create group for this tool
+    private static final String CSV_PROCESSING_TOOL = "csv-processing";
     
     // Map to store phone-to-tool mappings
     private final Map<String, String> phoneToolMap = new HashMap<>();
@@ -32,8 +35,9 @@ public class DefaultPhoneToolMappingService implements PhoneToolMappingService {
     void init() {
         LOG.info("Initializing DefaultPhoneToolMappingService");
         
-        // Add the default mapping
-        addPhoneToolMapping(DEFAULT_PHONE, DEFAULT_TOOL);
+        // Add the mappings
+        addPhoneToolMapping(TRANSCRIPTION_PHONE, TRANSCRIPTION_TOOL);
+        addPhoneToolMapping(CSV_PROCESSING_PHONE, CSV_PROCESSING_TOOL);
         
         LOG.info("DefaultPhoneToolMappingService initialized with " + phoneToolMap.size() + " mappings");
     }

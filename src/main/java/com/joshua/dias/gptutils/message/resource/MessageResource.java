@@ -66,24 +66,33 @@ public class MessageResource {
                         .build();
             }
             
-            // Check if audio or video is present
-            String audioUrl = null;
+            // Check if audio, video, or document is present
+            String contentUrl = null;
+            String contentType = null;
             
             // First check for audio content
             if (message.getAudio() != null && message.getAudio().getAudioUrl() != null) {
-                audioUrl = message.getAudio().getAudioUrl();
-                LOG.info("Processing audio content with URL: " + audioUrl);
+                contentUrl = message.getAudio().getAudioUrl();
+                contentType = "audio";
+                LOG.info("Processing audio content with URL: " + contentUrl);
             } 
             // If no audio, check for video content
             else if (message.getVideo() != null && message.getVideo().getVideoUrl() != null) {
-                audioUrl = message.getVideo().getVideoUrl();
-                LOG.info("Processing video content with URL: " + audioUrl);
+                contentUrl = message.getVideo().getVideoUrl();
+                contentType = "video";
+                LOG.info("Processing video content with URL: " + contentUrl);
             }
-            // If neither audio nor video is present, return an error
+            // If no audio or video, check for document content
+            else if (message.getDocument() != null && message.getDocument().getDocumentUrl() != null) {
+                contentUrl = message.getDocument().getDocumentUrl();
+                contentType = "document";
+                LOG.info("Processing document content with URL: " + contentUrl);
+            }
+            // If no content is present, return an error
             else {
-                LOG.warn("Message does not contain audio or video content");
+                LOG.warn("Message does not contain audio, video, or document content");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(createErrorResponse("Message does not contain audio or video content"))
+                        .entity(createErrorResponse("Message does not contain audio, video, or document content"))
                         .build();
             }
             
@@ -98,10 +107,10 @@ public class MessageResource {
                         .build();
             }
             
-            if (audioUrl == null || audioUrl.trim().isEmpty()) {
-                LOG.warn("Audio URL is missing or empty");
+            if (contentUrl == null || contentUrl.trim().isEmpty()) {
+                LOG.warn("Content URL is missing or empty");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(createErrorResponse("Audio URL is required"))
+                        .entity(createErrorResponse("Content URL is required"))
                         .build();
             }
             
@@ -119,7 +128,8 @@ public class MessageResource {
             // Create tool execution request
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("phoneNumber", phoneNumber);
-            parameters.put("audioUrl", audioUrl);
+            parameters.put("contentUrl", contentUrl);
+            parameters.put("contentType", contentType);
             parameters.put("messageId", message.getMessageId());
             
             ToolExecutionRequest toolRequest = new ToolExecutionRequest(
