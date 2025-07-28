@@ -1,5 +1,6 @@
 package com.joshua.dias.gptutils.zapi.client;
 
+import com.joshua.dias.gptutils.zapi.model.ForwardMessageRequestDTO;
 import com.joshua.dias.gptutils.zapi.model.SendMessageRequestDTO;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -34,4 +35,16 @@ public interface ZApiClient {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     Response sendMessage(SendMessageRequestDTO request);
+    
+    /**
+     * Forwards a WhatsApp message via Z-API.
+     *
+     * @param request The forward message request containing target phone number and message ID to forward
+     * @return HTTP response from the Z-API endpoint
+     */
+    @POST
+    @Path("/forward-message")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    Response forwardMessage(ForwardMessageRequestDTO request);
 }

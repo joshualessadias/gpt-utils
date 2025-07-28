@@ -66,9 +66,10 @@ public class MessageResource {
                         .build();
             }
             
-            // Check if audio, video, or document is present
+            // Check if audio, video, document, or text is present
             String contentUrl = null;
             String contentType = null;
+            String messageContent = null;
             
             // First check for audio content
             if (message.getAudio() != null && message.getAudio().getAudioUrl() != null) {
@@ -88,11 +89,17 @@ public class MessageResource {
                 contentType = "document";
                 LOG.info("Processing document content with URL: " + contentUrl);
             }
+            // If no audio, video, or document, check for text content
+            else if (message.getText() != null && message.getText().getMessage() != null) {
+                messageContent = message.getText().getMessage();
+                contentType = "text";
+                LOG.info("Processing text message: " + messageContent);
+            }
             // If no content is present, return an error
             else {
-                LOG.warn("Message does not contain audio, video, or document content");
+                LOG.warn("Message does not contain audio, video, document, or text content");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(createErrorResponse("Message does not contain audio, video, or document content"))
+                        .entity(createErrorResponse("Message does not contain audio, video, document, or text content"))
                         .build();
             }
             
@@ -107,30 +114,53 @@ public class MessageResource {
                         .build();
             }
             
-            if (contentUrl == null || contentUrl.trim().isEmpty()) {
-                LOG.warn("Content URL is missing or empty");
+            // For non-text messages, validate content URL
+            if (!"text".equals(contentType) && (contentUrl == null || contentUrl.trim().isEmpty())) {
+                LOG.warn("Content URL is missing or empty for non-text message");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(createErrorResponse("Content URL is required"))
+                        .entity(createErrorResponse("Content URL is required for non-text messages"))
+                        .build();
+            }
+            
+            // For text messages, validate message content
+            if ("text".equals(contentType) && (messageContent == null || messageContent.trim().isEmpty())) {
+                LOG.warn("Message content is missing or empty for text message");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(createErrorResponse("Message content is required for text messages"))
                         .build();
             }
             
             // Get the tool name for this phone
             String toolName = phoneToolMappingService.getToolForPhone(phoneNumber);
             
-            // This should not happen due to the isPhoneAllowed check, but adding as a safeguard
+            // Validate that we have a tool to execute
             if (toolName == null || toolName.trim().isEmpty()) {
-                LOG.warn("No tool mapped for phone: " + phoneNumber);
-                return Response.status(Response.Status.FORBIDDEN)
-                        .entity(createErrorResponse("No tool available for this phone number"))
+                LOG.error("No tool available for phone: " + phoneNumber + ". This should not happen with forwarding fallback.");
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(createErrorResponse("Internal error: No tool available for this phone number"))
                         .build();
             }
             
             // Create tool execution request
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("phoneNumber", phoneNumber);
-            parameters.put("contentUrl", contentUrl);
             parameters.put("contentType", contentType);
             parameters.put("messageId", message.getMessageId());
+            
+            // Add content URL for non-text messages
+            if (!"text".equals(contentType)) {
+                parameters.put("contentUrl", contentUrl);
+            }
+            
+            // Add message content for text messages
+            if ("text".equals(contentType)) {
+                parameters.put("messageContent", messageContent);
+            }
+            
+            // Add sender information if available
+            if (message.getSenderName() != null) {
+                parameters.put("senderName", message.getSenderName());
+            }
             
             ToolExecutionRequest toolRequest = new ToolExecutionRequest(
                     toolName, 

@@ -4,23 +4,23 @@ package com.joshua.dias.gptutils.message.model;
  * DTO for text message content.
  */
 public class TextDTO {
-    private String body;
+    private String message;
 
     // Default constructor
     public TextDTO() {
     }
 
     // Constructor with all fields
-    public TextDTO(String body) {
-        this.body = body;
+    public TextDTO(String message) {
+        this.message = message;
     }
 
     // Getters and setters
-    public String getBody() {
-        return body;
+    public String getMessage() {
+        return message;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

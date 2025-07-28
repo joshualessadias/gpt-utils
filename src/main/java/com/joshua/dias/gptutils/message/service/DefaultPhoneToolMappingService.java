@@ -22,8 +22,11 @@ public class DefaultPhoneToolMappingService implements PhoneToolMappingService {
     private static final String TRANSCRIPTION_PHONE = "120363419403036758-group";
     private static final String TRANSCRIPTION_TOOL = "transcription";
     
-    private static final String CSV_PROCESSING_PHONE = "120363419403036759-group"; // TODO: create group for this tool
+    private static final String CSV_PROCESSING_PHONE = "120363400852520946-group"; // TODO: create group for this tool
     private static final String CSV_PROCESSING_TOOL = "csv-processing";
+    
+    // Fallback tool for messages not mapped to any other tool
+    private static final String FORWARDING_TOOL = "forwarding";
     
     // Map to store phone-to-tool mappings
     private final Map<String, String> phoneToolMap = new HashMap<>();
@@ -47,7 +50,8 @@ public class DefaultPhoneToolMappingService implements PhoneToolMappingService {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             return false;
         }
-        return phoneToolMap.containsKey(phoneNumber);
+        // Allow all phones, since we'll use the forwarding tool as a fallback
+        return true;
     }
     
     @Override
@@ -55,7 +59,17 @@ public class DefaultPhoneToolMappingService implements PhoneToolMappingService {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             return null;
         }
-        return phoneToolMap.get(phoneNumber);
+        
+        // Get the mapped tool for this phone
+        String toolName = phoneToolMap.get(phoneNumber);
+        
+        // If no tool is mapped, use the forwarding tool as a fallback
+        if (toolName == null) {
+            LOG.info("No specific tool mapped for phone: " + phoneNumber + ". Using forwarding tool as fallback.");
+            return FORWARDING_TOOL;
+        }
+        
+        return toolName;
     }
     
     @Override

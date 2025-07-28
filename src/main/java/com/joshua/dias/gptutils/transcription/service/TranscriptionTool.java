@@ -108,7 +108,7 @@ public class TranscriptionTool implements Tool {
             return "Phone number is required";
         }
         
-        String audioUrl = request.getParameterAs("audioUrl", null);
+        String audioUrl = request.getParameterAs("contentUrl", null);
         if (audioUrl == null || audioUrl.trim().isEmpty()) {
             return "Audio URL is required";
         }
@@ -126,7 +126,7 @@ public class TranscriptionTool implements Tool {
      */
     private TranscriptionRequest createTranscriptionRequest(ToolExecutionRequest request) {
         String phoneNumber = request.getParameterAs("phoneNumber", "");
-        String audioUrl = request.getParameterAs("audioUrl", "");
+        String audioUrl = request.getParameterAs("contentUrl", "");
         String messageId = request.getParameterAs("messageId", "");
         
         return new TranscriptionRequest(phoneNumber, audioUrl, messageId);

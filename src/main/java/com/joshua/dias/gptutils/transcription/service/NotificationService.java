@@ -2,11 +2,9 @@ package com.joshua.dias.gptutils.transcription.service;
 
 import com.joshua.dias.gptutils.transcription.model.TranscriptionResponse;
 import com.joshua.dias.gptutils.zapi.service.ZApiService;
-
-import org.jboss.logging.Logger;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 /**
  * Service for sending notifications about completed transcriptions.
@@ -42,7 +40,7 @@ public class NotificationService {
             String message = formatNotificationMessage(response);
             
             // Send WhatsApp message via Z-API service with messageId for referencing
-            boolean success = zApiService.sendMessage(response.getPhoneNumber(), message, null, null, null, response.getMessageId());
+            boolean success = zApiService.sendMessage(response.getPhoneNumber(), message, response.getMessageId());
             
             if (success) {
                 LOG.info("WhatsApp notification sent successfully via Z-API");
