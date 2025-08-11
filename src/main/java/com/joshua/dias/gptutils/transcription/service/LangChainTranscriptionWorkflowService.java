@@ -78,14 +78,19 @@ public class LangChainTranscriptionWorkflowService implements TranscriptionWorkf
 
             // Step 3: Process the transcription using the LangChain workflow with GPT-4.1 Nano
             String transcribedText = transcriptionResponse.getTranscribedText();
-            LOG.info("Processing transcription with LangChain workflow");
-            LOG.debug("Transcribed text to be processed: " + (transcribedText != null ? transcribedText.substring(0, Math.min(100, transcribedText.length())) + "..." : "null"));
 
-            String processedText = workflow.processTranscription(transcribedText);
-            LOG.debug("Processed text result: " + (processedText != null ? processedText.substring(0, Math.min(100, processedText.length())) + "..." : "null"));
+            var isProcessingEnabled = false;
+            String processedText = null;
+            if (isProcessingEnabled) {
+                LOG.info("Processing transcription with LangChain workflow");
+                LOG.debug("Transcribed text to be processed: " + (transcribedText != null ? transcribedText.substring(0, Math.min(100, transcribedText.length())) + "..." : "null"));
+                processedText = workflow.processTranscription(transcribedText);
+                LOG.debug("Processed text result: " + (processedText != null ? processedText.substring(0, Math.min(100, processedText.length())) + "..." : "null"));
+            }
+            var textResponse = processedText != null ? processedText : transcribedText;
 
             // Return the processed response
-            return new TranscriptionResponse(request.getPhoneNumber(), processedText, request.getMessageId());
+            return new TranscriptionResponse(request.getPhoneNumber(), textResponse, request.getMessageId());
 
         } catch (Exception e) {
             LOG.error("Error in transcription workflow: " + e.getMessage(), e);
