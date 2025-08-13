@@ -2,6 +2,7 @@ package com.joshua.dias.gptutils.zapi.service;
 
 import com.joshua.dias.gptutils.zapi.client.ZApiClient;
 import com.joshua.dias.gptutils.zapi.model.ForwardMessageRequestDTO;
+import com.joshua.dias.gptutils.zapi.model.ReadMessageRequestDTO;
 import com.joshua.dias.gptutils.zapi.model.SendMessageRequestDTO;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -173,6 +174,50 @@ public class ZApiService {
         } catch (Exception e) {
             LOG.error("Error forwarding WhatsApp message via Z-API: " + e.getMessage(), e);
             return null;
+        }
+    }
+    
+    /**
+     * Marks a WhatsApp message as read via Z-API.
+     * 
+     * @param phoneNumber The phone number of the message sender
+     * @param messageId The ID of the message to mark as read
+     * @return true if message was marked as read successfully, false otherwise
+     */
+    public boolean readMessage(String phoneNumber, String messageId) {
+        try {
+            LOG.info("Marking WhatsApp message as read from phone number: " + phoneNumber);
+            
+            // Validate parameters
+            if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+                LOG.warn("Cannot mark message as read: phone number is null or empty");
+                return false;
+            }
+            
+            if (messageId == null || messageId.trim().isEmpty()) {
+                LOG.warn("Cannot mark message as read: message ID is null or empty");
+                return false;
+            }
+            
+            // Create read message request
+            ReadMessageRequestDTO request = new ReadMessageRequestDTO(phoneNumber, messageId);
+            
+            // Mark message as read via Z-API
+            Response clientResponse = zApiClient.readMessage(request);
+            
+            // Check if message was marked as read successfully
+            boolean success = clientResponse.getStatus() >= 200 && clientResponse.getStatus() < 300;
+            if (success) {
+                LOG.info("WhatsApp message marked as read successfully via Z-API");
+            } else {
+                LOG.warn("Failed to mark WhatsApp message as read via Z-API. Status: " + clientResponse.getStatus());
+            }
+            
+            return success;
+            
+        } catch (Exception e) {
+            LOG.error("Error marking WhatsApp message as read via Z-API: " + e.getMessage(), e);
+            return false;
         }
     }
 }

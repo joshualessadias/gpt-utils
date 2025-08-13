@@ -1,6 +1,7 @@
 package com.joshua.dias.gptutils.zapi.client;
 
 import com.joshua.dias.gptutils.zapi.model.ForwardMessageRequestDTO;
+import com.joshua.dias.gptutils.zapi.model.ReadMessageRequestDTO;
 import com.joshua.dias.gptutils.zapi.model.SendMessageRequestDTO;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -47,4 +48,16 @@ public interface ZApiClient {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     Response forwardMessage(ForwardMessageRequestDTO request);
+    
+    /**
+     * Marks a WhatsApp message as read via Z-API.
+     *
+     * @param request The read message request containing phone number and message ID to mark as read
+     * @return HTTP response from the Z-API endpoint
+     */
+    @POST
+    @Path("/read-message")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    Response readMessage(ReadMessageRequestDTO request);
 }

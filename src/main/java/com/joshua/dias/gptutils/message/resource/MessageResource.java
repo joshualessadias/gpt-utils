@@ -5,6 +5,7 @@ import com.joshua.dias.gptutils.message.service.PhoneToolMappingService;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionRequest;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionResponse;
 import com.joshua.dias.gptutils.orchestration.service.ToolExecutionService;
+import com.joshua.dias.gptutils.zapi.service.ZApiService;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -33,14 +34,16 @@ public class MessageResource {
     
     private final ToolExecutionService toolExecutionService;
     private final PhoneToolMappingService phoneToolMappingService;
+    private final ZApiService zApiService;
     
     /**
      * Constructor that injects dependencies.
      */
     @Inject
-    public MessageResource(ToolExecutionService toolExecutionService, PhoneToolMappingService phoneToolMappingService) {
+    public MessageResource(ToolExecutionService toolExecutionService, PhoneToolMappingService phoneToolMappingService, ZApiService zApiService) {
         this.toolExecutionService = toolExecutionService;
         this.phoneToolMappingService = phoneToolMappingService;
+        this.zApiService = zApiService;
         LOG.info("MessageResource initialized");
     }
     
@@ -57,6 +60,9 @@ public class MessageResource {
     public Response receiveMessage(ReceiveMessageDTO message) {
         try {
             LOG.info("Received message with ID: " + message.getMessageId());
+            
+            // Mark message as read immediately upon reception
+            zApiService.readMessage(message.getPhone(), message.getMessageId());
             
             // Validate participant phone
             if (!phoneToolMappingService.isPhoneAllowed(message.getPhone())) {
