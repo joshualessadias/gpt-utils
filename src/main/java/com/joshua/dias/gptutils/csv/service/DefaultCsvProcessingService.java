@@ -13,7 +13,7 @@ import org.jboss.logging.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,7 +139,7 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
     private String downloadCsvFile(String url) throws Exception {
         LOG.info("Downloading CSV file from URL: " + url);
 
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
         connection.setRequestMethod("GET");
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
@@ -252,9 +252,9 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
                     String cidade = property.getCidade();
                     String descricao = property.getDescricao();
 
-                    return modalidadeVenda != null && modalidadeVenda.contains("Leil�o") &&
-                            "MARINGA".equals(cidade) &&
-                            descricao != null && descricao.contains("Casa");
+                    return modalidadeVenda != null &&
+                            (modalidadeVenda.contains("Leil�o") || modalidadeVenda.contains("Licita��o")) &&
+                            "MARINGA".equals(cidade) && descricao != null && descricao.contains("Casa");
                 })
                 .collect(Collectors.toList());
     }
