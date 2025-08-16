@@ -252,9 +252,9 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
                     String cidade = property.getCidade();
                     String descricao = property.getDescricao();
 
-                    return modalidadeVenda != null && modalidadeVenda.contains("Leil�o") &&
-                            "MARINGA".equals(cidade) &&
-                            descricao != null && descricao.contains("Casa");
+                    return modalidadeVenda != null &&
+                            (modalidadeVenda.contains("Leil�o") || modalidadeVenda.contains("Licita��o")) &&
+                            "MARINGA".equals(cidade) && descricao != null && descricao.contains("Casa");
                 })
                 .collect(Collectors.toList());
     }
