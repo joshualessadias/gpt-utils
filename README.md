@@ -93,3 +93,9 @@ The application will be available at http://localhost:8912.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## How to deploy
+
+```
+docker build --platform linux/amd64,linux/arm64 -f src/main/docker/Dockerfile.jvm -t joshuadias/gpt-utils --push .
+```
