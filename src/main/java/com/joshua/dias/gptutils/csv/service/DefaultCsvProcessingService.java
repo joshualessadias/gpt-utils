@@ -26,6 +26,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Default implementation of the CsvProcessingService.
  * This service processes CSV documents, renames columns, maps to JSON, and filters data.
@@ -245,16 +247,25 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
      */
     private List<PropertyDTO> filterData(List<PropertyDTO> propertyData) {
         LOG.info("Filtering data");
+        var res = new ArrayList<PropertyDTO>();
 
-        return propertyData.stream()
+        var houses = propertyData.stream()
                 .filter(property -> {
-                    String modalidadeVenda = property.getModalidadeVenda();
                     String cidade = property.getCidade();
                     String descricao = property.getDescricao();
-
                     return "MARINGA".equals(cidade) && descricao != null && descricao.contains("Casa");
                 })
-                .collect(Collectors.toList());
+                .toList();
+        var apartments = propertyData.stream()
+                .filter(property -> {
+                    String cidade = property.getCidade();
+                    String descricao = property.getDescricao();
+                    return "MARINGA".equals(cidade) && descricao != null && descricao.contains("Apartamento");
+                })
+                .toList();
+        res.addAll(houses);
+        res.addAll(apartments);
+        return res;
     }
 
     /**
@@ -275,16 +286,19 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
         message.append("*Imóveis encontrados:*\n\n");
 
         for (PropertyDTO property : filteredData) {
-            message.append("*Número do Imóvel:* ").append(property.getNumImovel()).append("\n");
-            message.append("*Cidade:* ").append(property.getCidade()).append("\n");
-            message.append("*Bairro:* ").append(property.getBairro()).append("\n");
-            message.append("📍 *Endereço:* ").append(property.getEndereco()).append("\n");
-            message.append("💳 *Preço:* ").append(property.getPreco()).append("\n");
-            message.append("💰 *Valor de Avaliação:* ").append(property.getValorAvaliacao()).append("\n");
-            message.append("*Desconto:* ").append(property.getDesconto()).append("\n");
-            message.append("*Descrição:* ").append(property.getDescricao()).append("\n");
-            message.append("*Modalidade de Venda:* ").append(property.getModalidadeVenda()).append("\n");
-            message.append("*Link de Acesso:* ").append(property.getLinkAcesso()).append("\n\n");
+            var tipo = nonNull(property.getDescricao()) && !property.getDescricao().isEmpty() ?
+                    property.getDescricao().split(",")[0] : "N/A";
+            message.append("*").append(tipo).append("*\n");
+            message.append("    Número do Imóvel: ").append(property.getNumImovel()).append("\n");
+            message.append("    Cidade: ").append(property.getCidade()).append("\n");
+            message.append("    *Bairro:* ").append(property.getBairro()).append("\n");
+            message.append("    📍 *Endereço:* ").append(property.getEndereco()).append("\n");
+            message.append("    💳 *Preço:* ").append(property.getPreco()).append("\n");
+            message.append("    💰 *Valor de Avaliação:* ").append(property.getValorAvaliacao()).append("\n");
+            message.append("    Desconto: ").append(property.getDesconto()).append("\n");
+            message.append("    Descrição: ").append(property.getDescricao()).append("\n");
+            message.append("    Modalidade de Venda: ").append(property.getModalidadeVenda()).append("\n");
+            message.append("    Link de Acesso: ").append(property.getLinkAcesso()).append("\n\n");
             message.append("----------------------------\n\n");
         }
 
