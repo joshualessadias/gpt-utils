@@ -97,5 +97,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## How to deploy
 
 ```
+gradle clean build
+
 docker build --platform linux/amd64,linux/arm64 -f src/main/docker/Dockerfile.jvm -t joshuadias/gpt-utils --push .
 ```
