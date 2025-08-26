@@ -41,3 +41,24 @@ jobs:
     - name: Build and push Docker image
       run: |
         docker buildx build --platform linux/amd64,linux/arm64 -f src/main/docker/Dockerfile.jvm -t joshuadias/gpt-utils --push .
+
+    - name: Setup Tailscale
+      uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+        tags: tag:ci
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to server via SSH
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          cd ${{ secrets.DEPLOY_PATH }}
+          docker compose pull gpt-utils
+          docker compose up -d gpt-utils
+        EOF
