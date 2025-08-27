@@ -103,6 +103,8 @@ public class DefaultCsvProcessingService implements CsvProcessingService {
 
     @Override
     public CsvProcessingResponse process(CsvProcessingRequest request) {
+        zApiService.readMessage(request.getPhoneNumber(), request.getMessageId());
+
         try {
             LOG.info("Processing CSV for phone: " + request.getPhoneNumber());
 

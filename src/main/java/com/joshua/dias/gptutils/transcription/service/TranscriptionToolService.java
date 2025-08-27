@@ -2,6 +2,7 @@ package com.joshua.dias.gptutils.transcription.service;
 
 import com.joshua.dias.gptutils.transcription.model.TranscriptionRequest;
 import com.joshua.dias.gptutils.transcription.model.TranscriptionResponse;
+import com.joshua.dias.gptutils.zapi.service.ZApiService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,6 +28,7 @@ public class TranscriptionToolService {
 
     private final TranscriptionWorkflowService workflowService;
     private final NotificationService notificationService;
+    private final ZApiService zApiService;
     private final int corePoolSize;
     private final int maxPoolSize;
     private final int queueSize;
@@ -41,6 +43,7 @@ public class TranscriptionToolService {
     public TranscriptionToolService(
             TranscriptionWorkflowService workflowService,
             NotificationService notificationService,
+            ZApiService zApiService,
             @ConfigProperty(name = "app.async.core-pool-size", defaultValue = "5") int corePoolSize,
             @ConfigProperty(name = "app.async.max-pool-size", defaultValue = "10") int maxPoolSize,
             @ConfigProperty(name = "app.async.queue-size", defaultValue = "100") int queueSize,
@@ -54,6 +57,7 @@ public class TranscriptionToolService {
         this.queueSize = queueSize;
         this.retryAttempts = retryAttempts;
         this.retryDelay = retryDelay;
+        this.zApiService = zApiService;
     }
 
     /**
@@ -106,6 +110,8 @@ public class TranscriptionToolService {
     }
 
     public TranscriptionResponse process(TranscriptionRequest request) {
+        zApiService.readMessage(request.getPhoneNumber(), request.getMessageId());
+
         try {
             // Process the transcription
             LOG.info("Processing transcription for phone: " + request.getPhoneNumber());

@@ -5,11 +5,12 @@ import com.joshua.dias.gptutils.message.service.PhoneToolMappingService;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionRequest;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionResponse;
 import com.joshua.dias.gptutils.orchestration.service.ToolExecutionService;
-import com.joshua.dias.gptutils.zapi.service.ZApiService;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -34,16 +35,14 @@ public class MessageResource {
     
     private final ToolExecutionService toolExecutionService;
     private final PhoneToolMappingService phoneToolMappingService;
-    private final ZApiService zApiService;
-    
+
     /**
      * Constructor that injects dependencies.
      */
     @Inject
-    public MessageResource(ToolExecutionService toolExecutionService, PhoneToolMappingService phoneToolMappingService, ZApiService zApiService) {
+    public MessageResource(ToolExecutionService toolExecutionService, PhoneToolMappingService phoneToolMappingService) {
         this.toolExecutionService = toolExecutionService;
         this.phoneToolMappingService = phoneToolMappingService;
-        this.zApiService = zApiService;
         LOG.info("MessageResource initialized");
     }
     
@@ -61,9 +60,6 @@ public class MessageResource {
         try {
             LOG.info("Received message with ID: " + message.getMessageId());
             
-            // Mark message as read immediately upon reception
-            zApiService.readMessage(message.getPhone(), message.getMessageId());
-            
             // Validate participant phone
             if (!phoneToolMappingService.isPhoneAllowed(message.getPhone())) {
                 LOG.warn("Message blocked: phone " + message.getPhone() + " is not allowed.");
@@ -74,7 +70,7 @@ public class MessageResource {
             
             // Check if audio, video, document, or text is present
             String contentUrl = null;
-            String contentType = null;
+            String contentType;
             String messageContent = null;
             
             // First check for audio content
@@ -216,18 +212,12 @@ public class MessageResource {
      * Creates an HTTP response from a tool execution response.
      */
     private Response createResponseFromToolExecution(ToolExecutionResponse response) {
-        switch (response.getStatus()) {
-            case COMPLETED:
-                return Response.ok(response).build();
-            case ACCEPTED:
-                return Response.accepted(response).build();
-            case REJECTED:
-                return Response.status(Response.Status.BAD_REQUEST).entity(response).build();
-            case FAILED:
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
-            default:
-                return Response.serverError().entity(response).build();
-        }
+        return switch (response.getStatus()) {
+            case COMPLETED -> Response.ok(response).build();
+            case ACCEPTED -> Response.accepted(response).build();
+            case REJECTED -> Response.status(Response.Status.BAD_REQUEST).entity(response).build();
+            case FAILED -> Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+        };
     }
     
     /**
