@@ -1,5 +1,6 @@
 package com.joshua.dias.gptutils.message.resource;
 
+import com.joshua.dias.gptutils.confirmaai.ConfirmaAiClient;
 import com.joshua.dias.gptutils.message.model.ReceiveMessageDTO;
 import com.joshua.dias.gptutils.message.service.PhoneToolMappingService;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionRequest;
@@ -12,6 +13,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
@@ -36,14 +38,24 @@ public class MessageResource {
     private final ToolExecutionService toolExecutionService;
     private final PhoneToolMappingService phoneToolMappingService;
 
+    private final ConfirmaAiClient confirmaAiClient;
+    private final Request request;
+
     /**
      * Constructor that injects dependencies.
      */
     @Inject
-    public MessageResource(ToolExecutionService toolExecutionService, PhoneToolMappingService phoneToolMappingService) {
+    public MessageResource(
+            ToolExecutionService toolExecutionService,
+            PhoneToolMappingService phoneToolMappingService,
+            ConfirmaAiClient confirmaAiClient,
+            Request request
+    ) {
         this.toolExecutionService = toolExecutionService;
         this.phoneToolMappingService = phoneToolMappingService;
+        this.confirmaAiClient = confirmaAiClient;
         LOG.info("MessageResource initialized");
+        this.request = request;
     }
     
     /**
@@ -60,9 +72,13 @@ public class MessageResource {
         try {
             LOG.info("Received message with ID: " + message.getMessageId());
 
-            if (message.getButtonsResponseMessage() != null) {
+            if (message.getButtonsResponseMessage() != null &&
+                    message.getButtonsResponseMessage().getButtonId().startsWith("confirmaai-")) {
                 LOG.info("Message contains buttons response -> buttonId: " +
-                        message.getButtonsResponseMessage().getButtonId() + ", messageId: " + message.getMessageId());
+                        message.getButtonsResponseMessage().getButtonId() + ", message: " +
+                        message.getButtonsResponseMessage().getMessage());
+                confirmaAiClient.triggerWebhook(message);
+                return Response.ok("Triggered ConfirmaAi webhook").build();
             }
             
             // Validate participant phone

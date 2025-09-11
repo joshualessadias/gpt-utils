@@ -9,6 +9,11 @@ quarkus:
       scope: jakarta.inject.Singleton
       connect-timeout: 5000
       read-timeout: 5000
+    confirmaai-client:
+      url: "https://joshualessa.endpointroute.run/confirma-ai/api"
+      scope: jakarta.inject.Singleton
+      connect-timeout: 5000
+      read-timeout: 5000
 
 # OpenAI configuration
 openai:
