@@ -13,8 +13,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 import java.util.HashMap;
@@ -39,7 +39,6 @@ public class MessageResource {
     private final PhoneToolMappingService phoneToolMappingService;
 
     private final ConfirmaAiClient confirmaAiClient;
-    private final Request request;
 
     /**
      * Constructor that injects dependencies.
@@ -48,14 +47,12 @@ public class MessageResource {
     public MessageResource(
             ToolExecutionService toolExecutionService,
             PhoneToolMappingService phoneToolMappingService,
-            ConfirmaAiClient confirmaAiClient,
-            Request request
+            @RestClient ConfirmaAiClient confirmaAiClient
     ) {
         this.toolExecutionService = toolExecutionService;
         this.phoneToolMappingService = phoneToolMappingService;
         this.confirmaAiClient = confirmaAiClient;
         LOG.info("MessageResource initialized");
-        this.request = request;
     }
     
     /**
