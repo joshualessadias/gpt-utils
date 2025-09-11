@@ -31,6 +31,7 @@ public class ReceiveMessageDTO {
     private AudioDTO audio;
     private VideoDTO video;
     private DocumentDTO document;
+    private ButtonsResponseMessageDTO buttonsResponseMessage;
 
     // Default constructor
     public ReceiveMessageDTO() {
@@ -251,5 +252,13 @@ public class ReceiveMessageDTO {
 
     public void setDocument(DocumentDTO document) {
         this.document = document;
+    }
+
+    public ButtonsResponseMessageDTO getButtonsResponseMessage() {
+        return buttonsResponseMessage;
+    }
+
+    public void setButtonsResponseMessage(ButtonsResponseMessageDTO buttonsResponseMessage) {
+        this.buttonsResponseMessage = buttonsResponseMessage;
     }
 }

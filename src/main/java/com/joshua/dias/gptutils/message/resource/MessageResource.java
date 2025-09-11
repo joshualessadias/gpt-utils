@@ -59,6 +59,11 @@ public class MessageResource {
     public Response receiveMessage(ReceiveMessageDTO message) {
         try {
             LOG.info("Received message with ID: " + message.getMessageId());
+
+            if (message.getButtonsResponseMessage() != null) {
+                LOG.info("Message contains buttons response -> buttonId: " +
+                        message.getButtonsResponseMessage().getButtonId() + ", messageId: " + message.getMessageId());
+            }
             
             // Validate participant phone
             if (!phoneToolMappingService.isPhoneAllowed(message.getPhone())) {
