@@ -32,6 +32,7 @@ public class ReceiveMessageDTO {
     private VideoDTO video;
     private DocumentDTO document;
     private ButtonsResponseMessageDTO buttonsResponseMessage;
+    private ButtonReplyDTO buttonReply;
 
     // Default constructor
     public ReceiveMessageDTO() {
@@ -260,5 +261,13 @@ public class ReceiveMessageDTO {
 
     public void setButtonsResponseMessage(ButtonsResponseMessageDTO buttonsResponseMessage) {
         this.buttonsResponseMessage = buttonsResponseMessage;
+    }
+
+    public ButtonReplyDTO getButtonReply() {
+        return buttonReply;
+    }
+
+    public void setButtonReply(ButtonReplyDTO buttonReply) {
+        this.buttonReply = buttonReply;
     }
 }

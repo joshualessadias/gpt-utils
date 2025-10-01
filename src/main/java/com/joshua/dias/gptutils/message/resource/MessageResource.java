@@ -1,6 +1,8 @@
 package com.joshua.dias.gptutils.message.resource;
 
 import com.joshua.dias.gptutils.confirmaai.ConfirmaAiClient;
+import com.joshua.dias.gptutils.message.model.ButtonReplyDTO;
+import com.joshua.dias.gptutils.message.model.ButtonsResponseMessageDTO;
 import com.joshua.dias.gptutils.message.model.ReceiveMessageDTO;
 import com.joshua.dias.gptutils.message.service.PhoneToolMappingService;
 import com.joshua.dias.gptutils.orchestration.model.ToolExecutionRequest;
@@ -31,10 +33,10 @@ import java.util.concurrent.TimeoutException;
 @Path("/api/messages")
 @ApplicationScoped
 public class MessageResource {
-    
+
     private static final Logger LOG = Logger.getLogger(MessageResource.class);
     private static final int DEFAULT_TIMEOUT_SECONDS = 30;
-    
+
     private final ToolExecutionService toolExecutionService;
     private final PhoneToolMappingService phoneToolMappingService;
 
@@ -54,10 +56,23 @@ public class MessageResource {
         this.confirmaAiClient = confirmaAiClient;
         LOG.info("MessageResource initialized");
     }
-    
+
+    private static String getResponseButtonId(ReceiveMessageDTO message) {
+        Object buttonResponse = null;
+        if (message.getButtonsResponseMessage() != null) buttonResponse = message.getButtonsResponseMessage();
+        else if (message.getButtonReply() != null) buttonResponse = message.getButtonReply();
+        String buttonId = null;
+        if (buttonResponse != null) {
+            if (buttonResponse instanceof ButtonsResponseMessageDTO)
+                buttonId = ((ButtonsResponseMessageDTO) buttonResponse).getButtonId();
+            else buttonId = ((ButtonReplyDTO) buttonResponse).getButtonId();
+        }
+        return buttonId;
+    }
+
     /**
      * Receives a message and processes it.
-     * 
+     *
      * @param message The message to process
      * @return HTTP response indicating the result of the processing
      */
@@ -69,15 +84,14 @@ public class MessageResource {
         try {
             LOG.info("Received message with ID: " + message.getMessageId());
 
-            if (message.getButtonsResponseMessage() != null &&
-                    message.getButtonsResponseMessage().getButtonId().startsWith("confirmaai-")) {
-                LOG.info("Message contains buttons response -> buttonId: " +
-                        message.getButtonsResponseMessage().getButtonId() + ", message: " +
-                        message.getButtonsResponseMessage().getMessage());
+            var buttonId = getResponseButtonId(message);
+
+            if (buttonId != null && buttonId.startsWith("confirmaai-")) {
+                LOG.info("Message contains buttons response -> buttonId: " + buttonId);
                 confirmaAiClient.triggerWebhook(message);
                 return Response.ok("Triggered ConfirmaAi webhook").build();
             }
-            
+
             // Validate participant phone
             if (!phoneToolMappingService.isPhoneAllowed(message.getPhone())) {
                 LOG.warn("Message blocked: phone " + message.getPhone() + " is not allowed.");
@@ -85,18 +99,18 @@ public class MessageResource {
                         .entity(createErrorResponse("Message blocked: unauthorized participant phone"))
                         .build();
             }
-            
+
             // Check if audio, video, document, or text is present
             String contentUrl = null;
             String contentType;
             String messageContent = null;
-            
+
             // First check for audio content
             if (message.getAudio() != null && message.getAudio().getAudioUrl() != null) {
                 contentUrl = message.getAudio().getAudioUrl();
                 contentType = "audio";
                 LOG.info("Processing audio content with URL: " + contentUrl);
-            } 
+            }
             // If no audio, check for video content
             else if (message.getVideo() != null && message.getVideo().getVideoUrl() != null) {
                 contentUrl = message.getVideo().getVideoUrl();
@@ -122,10 +136,10 @@ public class MessageResource {
                         .entity(createErrorResponse("Message does not contain audio, video, document, or text content"))
                         .build();
             }
-            
+
             // Extract required parameters
             String phoneNumber = message.getPhone();
-            
+
             // Validate extracted parameters
             if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
                 LOG.warn("Phone number is missing or empty");
@@ -133,7 +147,7 @@ public class MessageResource {
                         .entity(createErrorResponse("Phone number is required"))
                         .build();
             }
-            
+
             // For non-text messages, validate content URL
             if (!"text".equals(contentType) && (contentUrl == null || contentUrl.trim().isEmpty())) {
                 LOG.warn("Content URL is missing or empty for non-text message");
@@ -141,7 +155,7 @@ public class MessageResource {
                         .entity(createErrorResponse("Content URL is required for non-text messages"))
                         .build();
             }
-            
+
             // For text messages, validate message content
             if ("text".equals(contentType) && (messageContent == null || messageContent.trim().isEmpty())) {
                 LOG.warn("Message content is missing or empty for text message");
@@ -149,47 +163,48 @@ public class MessageResource {
                         .entity(createErrorResponse("Message content is required for text messages"))
                         .build();
             }
-            
+
             // Get the tool name for this phone
             String toolName = phoneToolMappingService.getToolForPhone(phoneNumber);
-            
+
             // Validate that we have a tool to execute
             if (toolName == null || toolName.trim().isEmpty()) {
-                LOG.error("No tool available for phone: " + phoneNumber + ". This should not happen with forwarding fallback.");
+                LOG.error("No tool available for phone: " + phoneNumber +
+                        ". This should not happen with forwarding fallback.");
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity(createErrorResponse("Internal error: No tool available for this phone number"))
                         .build();
             }
-            
+
             // Create tool execution request
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("phoneNumber", phoneNumber);
             parameters.put("contentType", contentType);
             parameters.put("messageId", message.getMessageId());
-            
+
             // Add content URL for non-text messages
             if (!"text".equals(contentType)) {
                 parameters.put("contentUrl", contentUrl);
             }
-            
+
             // Add message content for text messages
             if ("text".equals(contentType)) {
                 parameters.put("messageContent", messageContent);
             }
-            
+
             // Add sender information if available
             if (message.getSenderName() != null) {
                 parameters.put("senderName", message.getSenderName());
             }
-            
+
             ToolExecutionRequest toolRequest = new ToolExecutionRequest(
-                    toolName, 
-                    parameters, 
+                    toolName,
+                    parameters,
                     null);  // No callback URL
-            
+
             // Execute the transcription tool asynchronously
             CompletableFuture<ToolExecutionResponse> future = toolExecutionService.executeAsync(toolRequest);
-            
+
             try {
                 // Wait for the result with a timeout
                 ToolExecutionResponse response = future.get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -207,7 +222,7 @@ public class MessageResource {
 
                 // Continue execution in the background
                 future.thenAccept(response ->
-                    LOG.info("Background execution completed with status: " + response.getStatus()));
+                        LOG.info("Background execution completed with status: " + response.getStatus()));
 
                 // Return an accepted response
                 Map<String, Object> response = new HashMap<>();
@@ -217,7 +232,7 @@ public class MessageResource {
 
                 return Response.accepted(response).build();
             }
-            
+
         } catch (Exception e) {
             LOG.error("Error processing message: " + e.getMessage(), e);
             return Response.serverError()
@@ -225,7 +240,7 @@ public class MessageResource {
                     .build();
         }
     }
-    
+
     /**
      * Creates an HTTP response from a tool execution response.
      */
@@ -237,7 +252,7 @@ public class MessageResource {
             case FAILED -> Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         };
     }
-    
+
     /**
      * Creates an error response map.
      */
